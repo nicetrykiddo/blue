@@ -31,17 +31,17 @@ func (h *Handler) HandleUpdate(update models.Update) {
 	}
 
 	msg := update.Message
-	
+
 	if msg.Document != nil {
 		h.handleDocument(msg)
 		return
 	}
-	
+
 	if msg.Text == "" {
 		return
 	}
 
-	log.Printf("Received message from %s: %s", msg.From.FirstName, msg.Text)
+	// log.Printf("Received message from %s: %s", msg.From.FirstName, msg.Text)
 
 	if strings.HasPrefix(msg.Text, "/") {
 		h.handleCommand(msg)
@@ -70,40 +70,40 @@ func (h *Handler) handleMessage(msg *models.Message) {
 	// Optional: Disable default echo to be more "professional" or keep it consistent
 	// For now, let's just ignore non-commands or provide a minimal response if needed.
 	// But the user code had an echo. Let's make it consistent.
-	response := fmt.Sprintf("<code>[+] Message Received\n| Len: %d</code>", len(msg.Text))
-	if _, err := h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, response); err != nil {
-		log.Printf("Error sending message: %v", err)
-	}
+	// response := fmt.Sprintf("<code>[+] Message Received\n| Len: %d</code>", len(msg.Text))
+	// if _, err := h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, response); err != nil {
+	// 	log.Printf("Error sending message: %v", err)
+	// }
 }
 
 func (h *Handler) handleDocument(msg *models.Message) {
 	doc := msg.Document
-	
+
 	if doc.MimeType != "text/plain" && !strings.HasSuffix(doc.FileName, ".txt") {
-		h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "<code>[!] Error: Only .txt files supported.</code>")
+		// h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "<code>[!] Error: Only .txt files supported.</code>")
 		return
 	}
 
 	h.bot.SendChatAction(msg.Chat.ID, "typing")
-	
+
 	file, err := h.bot.GetFile(doc.FileID)
 	if err != nil {
 		log.Printf("Error getting file: %v", err)
-		h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "<code>[!] Error: File retrieval failed.</code>")
+		// h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "<code>[!] Error: File retrieval failed.</code>")
 		return
 	}
 
 	content, err := h.bot.DownloadFile(file.FilePath)
 	if err != nil {
 		log.Printf("Error downloading file: %v", err)
-		h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "Download failed 😕")
+		// h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "Download failed 😕")
 		return
 	}
 
 	lines := strings.Count(string(content), "\n") + 1
 	words := len(strings.Fields(string(content)))
 	size := float64(len(content))
-	
+
 	var sizeStr string
 	if size < 1024 {
 		sizeStr = fmt.Sprintf("%.0f B", size)
