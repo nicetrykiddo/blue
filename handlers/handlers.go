@@ -41,7 +41,7 @@ func (h *Handler) HandleUpdate(update models.Update) {
 		return
 	}
 
-	// log.Printf("Received message from %s: %s", msg.From.FirstName, msg.Text)
+	log.Printf("Received message from %s: %s", msg.From.id, msg.Text)
 
 	if strings.HasPrefix(msg.Text, "/") {
 		h.handleCommand(msg)
