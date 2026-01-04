@@ -61,8 +61,6 @@ func (h *Handler) handleCommand(msg *models.Message) {
 
 	if handler, exists := commands.Get(command); exists {
 		handler(h.bot, msg, args, h.stickerCache)
-	} else {
-		h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "<code>[!] Unknown command. Use /help.</code>")
 	}
 }
 

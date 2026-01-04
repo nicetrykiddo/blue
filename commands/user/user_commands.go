@@ -14,6 +14,7 @@ func init() {
 	commands.Register("/start", startHandler)
 	commands.Register("/help", helpHandler)
 	commands.Register("/echo", echoHandler)
+	commands.Register("/getuser", getUserHandler)
 }
 
 func startHandler(bot *api.Bot, msg *models.Message, args []string, stickerCache *cache.StickerCache) {
@@ -40,6 +41,19 @@ func echoHandler(bot *api.Bot, msg *models.Message, args []string, stickerCache 
 
 	response := fmt.Sprintf("<code>[+] Echo\n| Message: %s</code>", strings.Join(args, " "))
 	if _, err := bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, response); err != nil {
+		log.Printf("Error sending message: %v", err)
+	}
+}
+
+func getUserHandler(bot *api.Bot, msg *models.Message, args []string, stickerCache *cache.StickerCache) {
+	if len(args) == 0 {
+		bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "<code>[!] Usage: /getuser <userid></code>")
+		return
+	}
+
+	userID := args[0]
+	text := fmt.Sprintf("<a href=\"tg://user?id=%s\">%s</a>", userID, userID)
+	if _, err := bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, text); err != nil {
 		log.Printf("Error sending message: %v", err)
 	}
 }
