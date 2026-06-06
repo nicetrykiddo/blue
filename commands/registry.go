@@ -2,11 +2,10 @@ package commands
 
 import (
 	"blue/api"
-	"blue/cache"
 	"blue/models"
 )
 
-type CommandFunc func(*api.Bot, *models.Message, []string, *cache.StickerCache)
+type CommandFunc func(*api.Bot, *models.Message, []string)
 
 var registry = make(map[string]CommandFunc)
 

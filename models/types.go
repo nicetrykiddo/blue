@@ -1,17 +1,19 @@
 package models
 
 type Update struct {
-	UpdateID int      `json:"update_id"`
-	Message  *Message `json:"message,omitempty"`
+	UpdateID      int            `json:"update_id"`
+	Message       *Message       `json:"message,omitempty"`
+	CallbackQuery *CallbackQuery `json:"callback_query,omitempty"`
 }
 
 type Message struct {
-	MessageID int       `json:"message_id"`
-	From      *User     `json:"from,omitempty"`
-	Chat      *Chat     `json:"chat"`
-	Date      int       `json:"date"`
-	Text      string    `json:"text,omitempty"`
-	Document  *Document `json:"document,omitempty"`
+	MessageID       int       `json:"message_id"`
+	MessageThreadID int       `json:"message_thread_id,omitempty"`
+	From            *User     `json:"from,omitempty"`
+	Chat            *Chat     `json:"chat"`
+	Date            int       `json:"date"`
+	Text            string    `json:"text,omitempty"`
+	Document        *Document `json:"document,omitempty"`
 }
 
 type User struct {
@@ -28,12 +30,6 @@ type Chat struct {
 	Username  string `json:"username,omitempty"`
 	FirstName string `json:"first_name,omitempty"`
 	LastName  string `json:"last_name,omitempty"`
-}
-
-type GetUpdatesResponse struct {
-	OK          bool     `json:"ok"`
-	Result      []Update `json:"result"`
-	Description string   `json:"description,omitempty"`
 }
 
 type SendMessageResponse struct {
@@ -77,5 +73,35 @@ type StickerSet struct {
 type GetStickerSetResponse struct {
 	OK          bool       `json:"ok"`
 	Result      StickerSet `json:"result"`
+	Description string     `json:"description,omitempty"`
+}
+
+type InlineKeyboardMarkup struct {
+	InlineKeyboard [][]InlineKeyboardButton `json:"inline_keyboard"`
+}
+
+type InlineKeyboardButton struct {
+	Text         string `json:"text"`
+	CallbackData string `json:"callback_data,omitempty"`
+	URL          string `json:"url,omitempty"`
+}
+
+type CallbackQuery struct {
+	ID      string   `json:"id"`
+	From    *User    `json:"from"`
+	Message *Message `json:"message,omitempty"`
+	Data    string   `json:"data"`
+}
+
+type ForumTopic struct {
+	MessageThreadID   int    `json:"message_thread_id"`
+	Name              string `json:"name"`
+	IconColor         int    `json:"icon_color,omitempty"`
+	IconCustomEmojiID string `json:"icon_custom_emoji_id,omitempty"`
+}
+
+type CreateForumTopicResponse struct {
+	OK          bool       `json:"ok"`
+	Result      ForumTopic `json:"result"`
 	Description string     `json:"description,omitempty"`
 }

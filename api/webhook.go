@@ -2,6 +2,7 @@ package api
 
 import (
 	"blue/models"
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,22 +11,21 @@ import (
 
 func (b *Bot) SetWebhook(url, secretToken string) error {
 	payload := map[string]interface{}{
-		"url": url,
-	}
-
-	if secretToken != "" {
-		payload["secret_token"] = secretToken
+		"url":             url,
+		"secret_token":    secretToken,
+		"allowed_updates": []string{"message", "callback_query"},
 	}
 
 	return b.sendBoolRequest("/setWebhook", payload)
 }
 
-func (b *Bot) DeleteWebhook() error {
-	return b.sendBoolRequest("/deleteWebhook", map[string]interface{}{})
-}
-
 func ParseWebhookUpdate(r *http.Request, secretToken string) (*models.Update, error) {
-	if secretToken != "" && r.Header.Get("X-Telegram-Bot-Api-Secret-Token") != secretToken {
+	if secretToken == "" {
+		return nil, fmt.Errorf("missing configured secret token")
+	}
+
+	gotSecret := r.Header.Get("X-Telegram-Bot-Api-Secret-Token")
+	if subtle.ConstantTimeCompare([]byte(gotSecret), []byte(secretToken)) != 1 {
 		return nil, fmt.Errorf("invalid secret token")
 	}
 

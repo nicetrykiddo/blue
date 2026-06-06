@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"blue/api"
-	"blue/cache"
 	"blue/commands"
-	_ "blue/commands/checker"
+	"blue/commands/admin"
+	"blue/commands/ctf"
 	_ "blue/commands/group"
 	_ "blue/commands/user"
+	"blue/config"
+	"blue/database"
 	"blue/models"
 	"fmt"
 	"log"
@@ -14,23 +16,47 @@ import (
 )
 
 type Handler struct {
-	bot          *api.Bot
-	stickerCache *cache.StickerCache
+	bot *api.Bot
+	db  *database.DB
+	cfg *config.Config
 }
 
-func NewHandler(bot *api.Bot, stickerCache *cache.StickerCache) *Handler {
+func NewHandler(bot *api.Bot, db *database.DB, cfg *config.Config) *Handler {
+	admin.SetDatabase(db)
+	ctf.SetServices(db, cfg)
 	return &Handler{
-		bot:          bot,
-		stickerCache: stickerCache,
+		bot: bot,
+		db:  db,
+		cfg: cfg,
 	}
 }
 
 func (h *Handler) HandleUpdate(update models.Update) {
+	if update.CallbackQuery != nil {
+		if ctf.HandleCallback(h.bot, update.CallbackQuery) {
+			return
+		}
+		admin.HandleCallback(h.bot, update.CallbackQuery)
+		return
+	}
+
 	if update.Message == nil {
 		return
 	}
 
 	msg := update.Message
+
+	if msg.From != nil {
+		h.db.UpsertUser(msg.From.ID, msg.From.Username, msg.From.FirstName, msg.From.LastName)
+	}
+
+	if msg.Chat.Type == "group" || msg.Chat.Type == "supergroup" {
+		h.db.UpsertGroup(msg.Chat.ID, msg.Chat.Title, msg.Chat.Type)
+	}
+
+	if h.cfg.LogChatID != 0 && msg.Chat.ID == h.cfg.LogChatID && msg.Text != "" && msg.From != nil {
+		h.db.LogMessage(msg.MessageID, msg.From.ID, msg.Chat.ID, msg.Text)
+	}
 
 	if msg.Document != nil {
 		h.handleDocument(msg)
@@ -40,8 +66,6 @@ func (h *Handler) HandleUpdate(update models.Update) {
 	if msg.Text == "" {
 		return
 	}
-
-	// log.Printf("Received message from %s: %s", msg.MessageID, msg.Text)
 
 	if strings.HasPrefix(msg.Text, "/") {
 		h.handleCommand(msg)
@@ -57,28 +81,23 @@ func (h *Handler) handleCommand(msg *models.Message) {
 	}
 
 	command := strings.ToLower(parts[0])
+	if at := strings.Index(command, "@"); at >= 0 {
+		command = command[:at]
+	}
 	args := parts[1:]
 
 	if handler, exists := commands.Get(command); exists {
-		handler(h.bot, msg, args, h.stickerCache)
+		handler(h.bot, msg, args)
 	}
 }
 
 func (h *Handler) handleMessage(msg *models.Message) {
-	// Optional: Disable default echo to be more "professional" or keep it consistent
-	// For now, let's just ignore non-commands or provide a minimal response if needed.
-	// But the user code had an echo. Let's make it consistent.
-	// response := fmt.Sprintf("<code>[+] Message Received\n| Len: %d</code>", len(msg.Text))
-	// if _, err := h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, response); err != nil {
-	// 	log.Printf("Error sending message: %v", err)
-	// }
 }
 
 func (h *Handler) handleDocument(msg *models.Message) {
 	doc := msg.Document
 
 	if doc.MimeType != "text/plain" && !strings.HasSuffix(doc.FileName, ".txt") {
-		// h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "<code>[!] Error: Only .txt files supported.</code>")
 		return
 	}
 
@@ -87,14 +106,12 @@ func (h *Handler) handleDocument(msg *models.Message) {
 	file, err := h.bot.GetFile(doc.FileID)
 	if err != nil {
 		log.Printf("Error getting file: %v", err)
-		// h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "<code>[!] Error: File retrieval failed.</code>")
 		return
 	}
 
 	content, err := h.bot.DownloadFile(file.FilePath)
 	if err != nil {
 		log.Printf("Error downloading file: %v", err)
-		// h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "Download failed 😕")
 		return
 	}
 
@@ -111,7 +128,7 @@ func (h *Handler) handleDocument(msg *models.Message) {
 		sizeStr = fmt.Sprintf("%.2f MB", size/(1024*1024))
 	}
 
-	response := fmt.Sprintf("📄 %s\n\n📊 Stats:\n• Lines: %d\n• Words: %d\n• Size: %s",
+	response := fmt.Sprintf("```\nFile: %s\n\nLines: %d\nWords: %d\nSize: %s\n```",
 		doc.FileName, lines, words, sizeStr)
 
 	h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, response)

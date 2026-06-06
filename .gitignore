@@ -1,3 +1,5 @@
 .env
-./commands/checker/
+commands/checker/
+blue
 blue.exe
+*.php
