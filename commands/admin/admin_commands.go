@@ -6,6 +6,7 @@ import (
 	"blue/database"
 	"blue/models"
 	"fmt"
+	"html"
 	"log"
 	"strings"
 )
@@ -22,18 +23,26 @@ func init() {
 
 func statsHandler(bot *api.Bot, msg *models.Message, args []string) {
 	if db == nil {
-		bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "stats are still waking up bruh, poke me again in a sec")
+		replyStatsHTML(bot, msg, "stats are still waking up bruh, poke me again in a sec")
 		return
 	}
 
 	text, keyboard, err := statsHomeView()
 	if err != nil {
 		log.Printf("Error getting total users: %v", err)
-		bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, "stats page bonked itself. nothing deep, try again")
+		replyStatsHTML(bot, msg, "stats page bonked itself. nothing deep, try again")
 		return
 	}
 
-	if _, err := bot.SendMessageWithKeyboard(msg.Chat.ID, text, keyboard); err != nil {
+	if _, err := bot.SendMessageWithOptions(api.SendMessageOptions{
+		ChatID:                msg.Chat.ID,
+		MessageThreadID:       msg.MessageThreadID,
+		ReplyToMessageID:      msg.MessageID,
+		Text:                  text,
+		ParseMode:             "HTML",
+		ReplyMarkup:           keyboard,
+		DisableWebPagePreview: true,
+	}); err != nil {
 		log.Printf("Error sending stats: %v", err)
 	}
 }
@@ -66,7 +75,7 @@ func handleGroupsCallback(bot *api.Bot, query *models.CallbackQuery) {
 		return
 	}
 
-	text := fmt.Sprintf("```\ngroup stats\n\ntotal groups: %d\n```", totalGroups)
+	text := fmt.Sprintf("<b>group stats</b>\n\n<pre>total groups: %d</pre>", totalGroups)
 
 	keyboard := &models.InlineKeyboardMarkup{
 		InlineKeyboard: [][]models.InlineKeyboardButton{
@@ -95,19 +104,17 @@ func handleTop5Callback(bot *api.Bot, query *models.CallbackQuery) {
 	}
 
 	var lines []string
-	lines = append(lines, "```")
-	lines = append(lines, "top 5 groups")
+	lines = append(lines, "<b>top 5 groups</b>")
 	lines = append(lines, "")
 
 	for i, group := range top5 {
-		lines = append(lines, fmt.Sprintf("%d. %s", i+1, group.Title))
-		lines = append(lines, fmt.Sprintf("   messages: %d", group.MessageCount))
+		lines = append(lines, fmt.Sprintf("<b>%d.</b> %s", i+1, html.EscapeString(group.Title)))
+		lines = append(lines, fmt.Sprintf("<code>messages: %d</code>", group.MessageCount))
 		if i < len(top5)-1 {
 			lines = append(lines, "")
 		}
 	}
 
-	lines = append(lines, "```")
 	text := strings.Join(lines, "\n")
 
 	keyboard := &models.InlineKeyboardMarkup{
@@ -153,7 +160,7 @@ func editStatsMessage(bot *api.Bot, query *models.CallbackQuery, text string, ke
 		ChatID:      query.Message.Chat.ID,
 		MessageID:   query.Message.MessageID,
 		Text:        text,
-		ParseMode:   "Markdown",
+		ParseMode:   "HTML",
 		ReplyMarkup: keyboard,
 	}); err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "message is not modified") {
@@ -173,7 +180,7 @@ func statsHomeView() (string, *models.InlineKeyboardMarkup, error) {
 		return "", nil, err
 	}
 
-	text := fmt.Sprintf("```\nbot stats\n\ntotal users: %d\n\npick one, i'll edit this msg\n```", totalUsers)
+	text := fmt.Sprintf("<b>bot stats</b>\n\n<pre>total users: %d</pre>\n\npick one, i'll edit this msg", totalUsers)
 	keyboard := &models.InlineKeyboardMarkup{
 		InlineKeyboard: [][]models.InlineKeyboardButton{
 			{
@@ -186,4 +193,17 @@ func statsHomeView() (string, *models.InlineKeyboardMarkup, error) {
 	}
 
 	return text, keyboard, nil
+}
+
+func replyStatsHTML(bot *api.Bot, msg *models.Message, text string) {
+	if _, err := bot.SendMessageWithOptions(api.SendMessageOptions{
+		ChatID:                msg.Chat.ID,
+		MessageThreadID:       msg.MessageThreadID,
+		ReplyToMessageID:      msg.MessageID,
+		Text:                  text,
+		ParseMode:             "HTML",
+		DisableWebPagePreview: true,
+	}); err != nil {
+		log.Printf("Error sending stats reply: %v", err)
+	}
 }

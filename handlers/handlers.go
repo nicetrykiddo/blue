@@ -11,6 +11,7 @@ import (
 	"blue/database"
 	"blue/models"
 	"fmt"
+	"html"
 	"log"
 	"strings"
 )
@@ -128,8 +129,17 @@ func (h *Handler) handleDocument(msg *models.Message) {
 		sizeStr = fmt.Sprintf("%.2f MB", size/(1024*1024))
 	}
 
-	response := fmt.Sprintf("```\nFile: %s\n\nLines: %d\nWords: %d\nSize: %s\n```",
-		doc.FileName, lines, words, sizeStr)
+	response := fmt.Sprintf("<b>file</b>\n<pre>name: %s\nlines: %d\nwords: %d\nsize: %s</pre>",
+		html.EscapeString(doc.FileName), lines, words, sizeStr)
 
-	h.bot.ReplyToMessage(msg.Chat.ID, msg.MessageID, response)
+	if _, err := h.bot.SendMessageWithOptions(api.SendMessageOptions{
+		ChatID:                msg.Chat.ID,
+		MessageThreadID:       msg.MessageThreadID,
+		ReplyToMessageID:      msg.MessageID,
+		Text:                  response,
+		ParseMode:             "HTML",
+		DisableWebPagePreview: true,
+	}); err != nil {
+		log.Printf("Error sending file summary: %v", err)
+	}
 }

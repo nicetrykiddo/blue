@@ -68,13 +68,13 @@ func main() {
 		<-sigChan
 		log.Println("Received shutdown signal...")
 		if cfg.GroupID != 0 {
-			bot.SendMessage(cfg.GroupID, "```\ngoing offline\n```")
+			bot.SendHTMLMessage(cfg.GroupID, "<pre>going offline</pre>")
 		}
 		os.Exit(0)
 	}()
 
 	if cfg.GroupID != 0 {
-		bot.SendMessage(cfg.GroupID, "```\nback online\nmode: webhook\n```")
+		bot.SendHTMLMessage(cfg.GroupID, "<pre>back online\nmode: webhook</pre>")
 	}
 
 	server := &http.Server{

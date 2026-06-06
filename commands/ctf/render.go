@@ -30,21 +30,21 @@ func formatEventCard(index int, event database.CTFEvent) string {
 		venue += " | " + event.Location
 	}
 
-	lines := []string{
-		fmt.Sprintf("<b>%d. %s</b> <code>#%d</code>", index, safe(event.Title), event.ID),
+	title := fmt.Sprintf("<b>%d. %s</b> <code>#%d</code>", index, safe(event.Title), event.ID)
+	details := []string{
 		fmt.Sprintf("starts: <b>%s</b>", safe(event.StartTime.In(loc).Format("Mon, 02 Jan 15:04 MST"))),
 		fmt.Sprintf("ends: %s", safe(event.FinishTime.In(loc).Format("Mon, 02 Jan 15:04 MST"))),
 		fmt.Sprintf("type: %s | %s", emptyDash(event.Format), safe(venue)),
 	}
 
 	if event.Prizes != "" {
-		lines = append(lines, fmt.Sprintf("prizes: %s", safe(truncate(event.Prizes, 110))))
+		details = append(details, fmt.Sprintf("prizes: %s", safe(truncate(event.Prizes, 180))))
 	}
 	if event.VoteCount > 0 {
-		lines = append(lines, fmt.Sprintf("roster: <b>%d</b>", event.VoteCount))
+		details = append(details, fmt.Sprintf("roster: <b>%d</b>", event.VoteCount))
 	}
 
-	return strings.Join(lines, "\n")
+	return title + "\n" + expandableQuote(details)
 }
 
 func formatSingleAnnouncement(event database.CTFEvent) string {
@@ -162,4 +162,8 @@ func replyHTML(bot *api.Bot, msg *models.Message, text string, keyboard *models.
 	if _, err := bot.SendMessageWithOptions(opts); err != nil {
 		log.Printf("Error sending CTF reply: %v", err)
 	}
+}
+
+func expandableQuote(lines []string) string {
+	return "<blockquote expandable>" + strings.Join(lines, "\n") + "</blockquote>"
 }
