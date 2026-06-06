@@ -98,6 +98,34 @@ func voiceDigestSent() string {
 	return "digest sent to the ctf topic."
 }
 
+func voiceImOutNotTopic() string {
+	return "use /imout inside the ctf topic"
+}
+
+func voiceImOutNoUser() string {
+	return "idk who typed that"
+}
+
+func voiceImOutNotFound() string {
+	return "this topic is not linked to a ctf"
+}
+
+func voiceImOutWasNotIn() string {
+	return "you were not in this roster"
+}
+
+func voiceImOutDone(count int) string {
+	return fmt.Sprintf("removed you. roster is at %d.", count)
+}
+
+func voiceImOutClosed() string {
+	return "no one left. closing topic."
+}
+
+func voiceImOutFailed() string {
+	return "could not remove you rn. try again"
+}
+
 func voiceUsageEdit() string {
 	return "shape it like this: <code>/ctfedit &lt;ctf_id&gt; &lt;new topic msg&gt;</code>"
 }

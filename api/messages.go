@@ -354,3 +354,12 @@ func (b *Bot) CreateForumTopic(chatID int64, name string) (*models.ForumTopic, e
 
 	return &result.Result, nil
 }
+
+func (b *Bot) CloseForumTopic(chatID int64, messageThreadID int) error {
+	payload := map[string]interface{}{
+		"chat_id":           chatID,
+		"message_thread_id": messageThreadID,
+	}
+
+	return b.sendBoolRequest("/closeForumTopic", payload)
+}

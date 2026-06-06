@@ -201,12 +201,66 @@ func syncCTFsHandler(bot *api.Bot, msg *models.Message, args []string) {
 	replyHTML(bot, msg, voiceDigestSent(), nil)
 }
 
+func imOutHandler(bot *api.Bot, msg *models.Message, args []string) {
+	if db == nil {
+		replyHTML(bot, msg, voiceStorageMissing, nil)
+		return
+	}
+	if msg.From == nil {
+		replyHTML(bot, msg, voiceImOutNoUser(), nil)
+		return
+	}
+	if msg.MessageThreadID == 0 {
+		replyHTML(bot, msg, voiceImOutNotTopic(), nil)
+		return
+	}
+
+	event, err := db.GetCTFEventByForumTopicID(msg.MessageThreadID)
+	if err != nil {
+		replyHTML(bot, msg, voiceImOutNotFound(), nil)
+		return
+	}
+
+	removed, count, err := db.RemoveCTFParticipant(event.ID, msg.From.ID)
+	if err != nil {
+		log.Printf("Error removing CTF participant: %v", err)
+		replyHTML(bot, msg, voiceImOutFailed(), nil)
+		return
+	}
+
+	if count == 0 {
+		replyHTML(bot, msg, voiceImOutClosed(), nil)
+		if err := db.ClearCTFReminder(event.ID, reminderKeyStart); err != nil {
+			log.Printf("Error clearing empty CTF reminder: %v", err)
+		}
+		if err := bot.CloseForumTopic(groupOrMessageChatID(msg), event.ForumTopicID); err != nil {
+			log.Printf("Error closing empty CTF topic: %v", err)
+			return
+		}
+		if err := db.ClearCTFTopic(event.ID); err != nil {
+			log.Printf("Error clearing empty CTF topic: %v", err)
+		}
+		return
+	}
+
+	if !removed {
+		replyHTML(bot, msg, voiceImOutWasNotIn(), nil)
+		return
+	}
+
+	if _, err := ensureCTFTopic(bot, groupOrMessageChatID(msg), event); err != nil {
+		log.Printf("Error refreshing CTF topic after /imout: %v", err)
+	}
+	replyHTML(bot, msg, voiceImOutDone(count), nil)
+}
+
 func helpCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
 	text := `<b>ctf commands</b>
 
 <code>/livectfs</code> - what is burning rn
 <code>/upcomingctfs [days]</code> - upcoming ctfs
 <code>/ctfsync</code> - send today's digest rn
+<code>/imout</code> - leave this ctf topic
 <code>/ctfadd</code> - add one by hand
 <code>/ctftopic &lt;id&gt;</code> - open the topic
 <code>/ctfedit &lt;id&gt; &lt;text&gt;</code> - rewrite the opening msg

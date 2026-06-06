@@ -30,6 +30,7 @@ func init() {
 	commands.Register("/ctftopic", topicCTFHandler)
 	commands.Register("/ctfsync", syncCTFsHandler)
 	commands.Register("/ctfhelp", helpCTFHandler)
+	commands.Register("/imout", imOutHandler)
 }
 
 func SetServices(database *database.DB, config *config.Config) {

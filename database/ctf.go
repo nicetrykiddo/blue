@@ -143,6 +143,27 @@ func (db *DB) GetCTFEvent(id int) (*CTFEvent, error) {
 	return event, nil
 }
 
+func (db *DB) GetCTFEventByForumTopicID(forumTopicID int) (*CTFEvent, error) {
+	row := db.conn.QueryRow(`
+		SELECT
+			e.id, e.ctftime_id, e.source, e.title, e.description, e.url, e.ctftime_url,
+			e.format, e.prizes, e.restrictions, e.location, e.logo, e.onsite,
+			e.ctftime_participants, e.start_time, e.finish_time, e.forum_topic_id,
+			e.initial_message_id, COUNT(p.user_id) AS vote_count
+		FROM ctf_events e
+		LEFT JOIN ctf_participants p ON p.ctf_event_id = e.id
+		WHERE e.forum_topic_id = $1
+		GROUP BY e.id
+	`, forumTopicID)
+
+	event, err := scanCTFEvent(row)
+	if err != nil {
+		return nil, err
+	}
+
+	return event, nil
+}
+
 func (db *DB) ListLiveCTFEvents(now time.Time, limit int) ([]CTFEvent, error) {
 	rows, err := db.conn.Query(`
 		SELECT
@@ -241,6 +262,28 @@ func (db *DB) AddCTFParticipant(eventID int, userID int64, username, firstName, 
 	return rowsAffected > 0, count, nil
 }
 
+func (db *DB) RemoveCTFParticipant(eventID int, userID int64) (bool, int, error) {
+	result, err := db.conn.Exec(`
+		DELETE FROM ctf_participants
+		WHERE ctf_event_id = $1 AND user_id = $2
+	`, eventID, userID)
+	if err != nil {
+		return false, 0, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, 0, err
+	}
+
+	count, err := db.GetCTFParticipantCount(eventID)
+	if err != nil {
+		return rowsAffected > 0, 0, err
+	}
+
+	return rowsAffected > 0, count, nil
+}
+
 func (db *DB) GetCTFParticipantCount(eventID int) (int, error) {
 	var count int
 	err := db.conn.QueryRow("SELECT COUNT(*) FROM ctf_participants WHERE ctf_event_id = $1", eventID).Scan(&count)
@@ -291,6 +334,15 @@ func (db *DB) SetCTFInitialMessage(eventID int, initialMessageID int) error {
 		SET initial_message_id = $2, updated_at = NOW()
 		WHERE id = $1
 	`, eventID, initialMessageID)
+	return err
+}
+
+func (db *DB) ClearCTFTopic(eventID int) error {
+	_, err := db.conn.Exec(`
+		UPDATE ctf_events
+		SET forum_topic_id = 0, initial_message_id = 0, updated_at = NOW()
+		WHERE id = $1
+	`, eventID)
 	return err
 }
 
