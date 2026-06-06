@@ -120,11 +120,7 @@ func joinKeyboard(events []database.CTFEvent) *models.InlineKeyboardMarkup {
 	rows := make([][]models.InlineKeyboardButton, 0, limit)
 	for i := 0; i < limit; i++ {
 		event := events[i]
-		label := "I'm in"
-		if event.VoteCount > 0 {
-			label = fmt.Sprintf("I'm in (%d)", event.VoteCount)
-		}
-		rows = append(rows, []models.InlineKeyboardButton{{Text: label, CallbackData: callbackJoin + strconv.Itoa(event.ID)}})
+		rows = append(rows, []models.InlineKeyboardButton{{Text: joinButtonLabel(event), CallbackData: callbackJoin + strconv.Itoa(event.ID)}})
 	}
 
 	return &models.InlineKeyboardMarkup{InlineKeyboard: rows}
@@ -132,7 +128,7 @@ func joinKeyboard(events []database.CTFEvent) *models.InlineKeyboardMarkup {
 
 func singleJoinKeyboard(event database.CTFEvent) *models.InlineKeyboardMarkup {
 	rows := [][]models.InlineKeyboardButton{
-		{{Text: "I'm in", CallbackData: callbackJoin + strconv.Itoa(event.ID)}},
+		{{Text: joinButtonLabel(event), CallbackData: callbackJoin + strconv.Itoa(event.ID)}},
 	}
 
 	linkRow := []models.InlineKeyboardButton{}
@@ -168,4 +164,28 @@ func replyHTML(bot *api.Bot, msg *models.Message, text string, keyboard *models.
 
 func expandableQuote(lines []string) string {
 	return "<blockquote expandable>" + strings.Join(lines, "\n") + "</blockquote>"
+}
+
+func joinButtonLabel(event database.CTFEvent) string {
+	name := compactCTFButtonName(event.Title)
+	label := "I'm in: " + name
+	if event.VoteCount > 0 {
+		label = fmt.Sprintf("%s (%d)", label, event.VoteCount)
+	}
+	return label
+}
+
+func compactCTFButtonName(title string) string {
+	title = strings.Join(strings.Fields(title), " ")
+	if title == "" {
+		return "this ctf"
+	}
+
+	const maxRunes = 28
+	runes := []rune(title)
+	if len(runes) <= maxRunes {
+		return title
+	}
+
+	return strings.TrimSpace(string(runes[:maxRunes-3])) + "..."
 }
