@@ -18,7 +18,7 @@ func infoHandler(bot *api.Bot, msg *models.Message, args []string) {
 		return
 	}
 
-	text := fmt.Sprintf("<b>chat paperwork</b>\nTitle: <b>%s</b>\nType: <code>%s</code>\nChat ID: <code>%d</code>\nTopic ID: <code>%d</code>", html.EscapeString(msg.Chat.Title), msg.Chat.Type, msg.Chat.ID, msg.MessageThreadID)
+	text := fmt.Sprintf("<b>chat paperwork</b>\ntitle: <b>%s</b>\ntype: <code>%s</code>\nchat id: <code>%d</code>\ntopic id: <code>%d</code>", html.EscapeString(msg.Chat.Title), msg.Chat.Type, msg.Chat.ID, msg.MessageThreadID)
 	_ = bot.SendChatAction(msg.Chat.ID, "typing")
 	if _, err := bot.SendMessageWithOptions(api.SendMessageOptions{
 		ChatID:                msg.Chat.ID,

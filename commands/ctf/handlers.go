@@ -202,14 +202,14 @@ func syncCTFsHandler(bot *api.Bot, msg *models.Message, args []string) {
 }
 
 func helpCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
-	text := `<b>CTF controls</b>
+	text := `<b>ctf commands</b>
 
-<code>/livectfs</code> - what is burning right now
-<code>/upcomingctfs [days]</code> - future trouble, sorted
-<code>/ctfsync</code> - send today's digest now
+<code>/livectfs</code> - what is burning rn
+<code>/upcomingctfs [days]</code> - upcoming ctfs
+<code>/ctfsync</code> - send today's digest rn
 <code>/ctfadd</code> - add one by hand
-<code>/ctftopic &lt;id&gt;</code> - open the war room
-<code>/ctfedit &lt;id&gt; &lt;text&gt;</code> - rewrite the opening note
-<code>/ctfrefresh &lt;id&gt;</code> - rebuild the opening note from stored data`
+<code>/ctftopic &lt;id&gt;</code> - open the topic
+<code>/ctfedit &lt;id&gt; &lt;text&gt;</code> - rewrite the opening msg
+<code>/ctfrefresh &lt;id&gt;</code> - refresh the opening msg`
 	replyHTML(bot, msg, text, nil)
 }

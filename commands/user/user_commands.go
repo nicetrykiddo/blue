@@ -23,26 +23,23 @@ func startHandler(bot *api.Bot, msg *models.Message, args []string) {
 		username = msg.From.FirstName
 	}
 
-	text := fmt.Sprintf("<b>awake.</b>\nI see you, <b>%s</b>. Commands are loaded; chaos is being kept within legal limits.", html.EscapeString(username))
+	text := fmt.Sprintf("<b>awake.</b>\nyo <b>%s</b>.", html.EscapeString(username))
 	replyHTML(bot, msg, text)
 }
 
 func helpHandler(bot *api.Bot, msg *models.Message, args []string) {
-	text := `<b>commands that currently have a pulse</b>
+	text := `<b>stuff i can do rn</b>
 
-<code>/livectfs</code> - CTFs happening right now
-<code>/upcomingctfs</code> - future scoreboard incidents
-<code>/ctfhelp</code> - CTF controls
-<code>/info</code> - this chat's ID paperwork
-<code>/rules</code> - the boring wall, but useful
+<code>/info</code> - ids and topic id
 <code>/stats</code> - bot numbers
-<code>/echo</code> - make me repeat your sentence for science`
+<code>/livectfs</code> - ctfs happening rn
+<code>/upcomingctfs</code> - ctfs coming up`
 	replyHTML(bot, msg, text)
 }
 
 func echoHandler(bot *api.Bot, msg *models.Message, args []string) {
 	if len(args) == 0 {
-		replyHTML(bot, msg, "Echo what, exactly? Give me some bytes: <code>/echo &lt;message&gt;</code>")
+		replyHTML(bot, msg, "echo what? use <code>/echo &lt;message&gt;</code>")
 		return
 	}
 
@@ -52,12 +49,12 @@ func echoHandler(bot *api.Bot, msg *models.Message, args []string) {
 
 func getUserHandler(bot *api.Bot, msg *models.Message, args []string) {
 	if len(args) == 0 {
-		replyHTML(bot, msg, "Give me a user ID first: <code>/getuser &lt;userid&gt;</code>")
+		replyHTML(bot, msg, "drop a user id first yk: <code>/getuser &lt;userid&gt;</code>")
 		return
 	}
 
 	userID := args[0]
-	text := fmt.Sprintf("Summoning link for <a href=\"tg://user?id=%s\">%s</a>.", html.EscapeString(userID), html.EscapeString(userID))
+	text := fmt.Sprintf("user link: <a href=\"tg://user?id=%s\">%s</a>", html.EscapeString(userID), html.EscapeString(userID))
 	replyHTML(bot, msg, text)
 }
 

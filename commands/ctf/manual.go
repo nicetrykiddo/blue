@@ -120,12 +120,11 @@ func parseCTFTime(value string) (time.Time, error) {
 }
 
 func addUsage(reason error) string {
-	return fmt.Sprintf(`Couldn't put that CTF on the board: %s
+	return fmt.Sprintf(`bruh give it to me in one of these shapes:
 
-Use either:
 <code>/ctfadd Title | 2026-06-20 18:00 | 2026-06-21 18:00 | https://example.com | Jeopardy | Prizes | Description</code>
 
-Or:
+or:
 <code>/ctfadd
 Title: Example CTF
 Start: 2026-06-20 18:00
@@ -133,5 +132,5 @@ Finish: 2026-06-21 18:00
 URL: https://example.com
 Format: Jeopardy
 Prizes: Swag
-Description: Short info</code>`, safe(reason.Error()))
+Description: Short info</code>`)
 }

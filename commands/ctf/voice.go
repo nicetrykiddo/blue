@@ -7,142 +7,142 @@ import (
 )
 
 const (
-	voiceLoadingLive       = "<i>Checking what is currently on fire...</i>"
-	voiceLoadingUpcoming   = "<i>Reading the calendar like it owes us money...</i>"
-	voiceLoadingLiveDone   = "<i>Found the smoke. Sorting it by how soon everyone suffers...</i>"
-	voiceLoadingFutureDone = "<i>Calendar decoded. Removing the boring bits...</i>"
-	voiceStorageMissing    = "CTF storage is not plugged in. The calendar is standing here with empty hands."
-	voiceLiveError         = "Live CTF fetch tripped. CTFtime blinked first; try again in a bit."
-	voiceUpcomingError     = "Upcoming CTF fetch tripped. The schedule drawer jammed."
-	voiceNoPermission      = "Nice try, but this button is behind the staff door."
+	voiceLoadingLive       = "<i>checking what is on fire rn...</i>"
+	voiceLoadingUpcoming   = "<i>checking the calendar...</i>"
+	voiceLoadingLiveDone   = "<i>found some, sorting...</i>"
+	voiceLoadingFutureDone = "<i>calendar done, sorting...</i>"
+	voiceStorageMissing    = "ctf desk is still waking up, poke me again in a sec"
+	voiceLiveError         = "live board blinked. try again in a bit yk"
+	voiceUpcomingError     = "calendar drawer jammed. classic. try again in a bit"
+	voiceNoPermission      = "nice try but staff only yk"
 )
 
 func voiceDailyList(now time.Time) listViewCopy {
 	return listViewCopy{
-		Title:   "CTF watchlist",
-		Subline: fmt.Sprintf("%s | next %d day(s) | freshly scraped, lightly judged", localStamp(now), defaultLookaheadDays()),
-		Empty:   "Nothing worth waking the scoreboard for in this window.",
-		Footer:  "Hit <b>I'm in</b> if you are actually showing up. Enough hands go up, a dedicated topic appears.",
+		Title:   "ctf watchlist",
+		Subline: fmt.Sprintf("%s | next %d day(s)", localStamp(now), defaultLookaheadDays()),
+		Empty:   "nothing in this window rn",
+		Footer:  "hit <b>I'm in</b> if you're playing. enough votes and i open a topic.",
 	}
 }
 
 func voiceLiveList(now time.Time) listViewCopy {
 	return listViewCopy{
-		Title:   "Live CTFs",
-		Subline: fmt.Sprintf("%s | these are already moving", localStamp(now)),
-		Empty:   "Nothing live right now. The scoreboard is pretending to be peaceful.",
+		Title:   "live ctfs",
+		Subline: fmt.Sprintf("%s | live rn", localStamp(now)),
+		Empty:   "nothing live rn",
 	}
 }
 
 func voiceUpcomingList(now time.Time, days int) listViewCopy {
 	return listViewCopy{
-		Title:   "Upcoming CTFs",
-		Subline: fmt.Sprintf("%s | next %d day(s) | calendar ambushes, sorted", localStamp(now), days),
-		Empty:   "Clean window. Suspicious, but clean.",
+		Title:   "upcoming ctfs",
+		Subline: fmt.Sprintf("%s | next %d day(s)", localStamp(now), days),
+		Empty:   "nothing coming up rn",
 	}
 }
 
 func voiceManualCreated(id int, title string) string {
-	return fmt.Sprintf("CTF <b>#%d</b> is on the board: %s", id, safe(title))
+	return fmt.Sprintf("ctf <b>#%d</b> added: %s", id, safe(title))
 }
 
 func voiceSavedError() string {
-	return "Could not save that CTF. The database rejected the offering."
+	return "that ctf did not stick. try again"
 }
 
 func voiceNotFound() string {
-	return "I looked. That CTF is not in the drawer."
+	return "i checked, that ctf is not in the drawer"
 }
 
 func voiceNoTopic(id int) string {
-	return fmt.Sprintf("That CTF has no war room yet. Run <code>/ctftopic %d</code> first.", id)
+	return fmt.Sprintf("that ctf has no topic yet. run <code>/ctftopic %d</code> first", id)
 }
 
 func voiceNoTopicShort() string {
-	return "That CTF has no war room yet."
+	return "that ctf has no topic yet"
 }
 
 func voiceEditFailed() string {
-	return "Telegram refused the edit. Annoying, but honest."
+	return "telegram said no to editing it"
 }
 
 func voiceRefreshFailed() string {
-	return "Telegram refused the refresh. It does that sometimes."
+	return "telegram said no to refreshing it"
 }
 
 func voiceTopicCreateFailed() string {
-	return "Could not open the war room. Give the bot topic powers and I will try again."
+	return "topic did not open. check my perms"
 }
 
 func voiceDigestFailed() string {
-	return "Could not push the digest. The pipe made a face."
+	return "digest did not send. try again"
 }
 
 func voiceEdited(id int) string {
-	return fmt.Sprintf("Updated <b>#%d</b>. The opening note has new orders.", id)
+	return fmt.Sprintf("updated <b>#%d</b>. opening msg changed.", id)
 }
 
 func voiceRefreshed(id int) string {
-	return fmt.Sprintf("Refreshed <b>#%d</b>. The topic message is back in fighting shape.", id)
+	return fmt.Sprintf("refreshed <b>#%d</b>. topic msg is back in shape.", id)
 }
 
 func voiceTopicCreated(id int, title string) string {
-	return fmt.Sprintf("War room opened for <b>#%d</b>: %s", id, safe(title))
+	return fmt.Sprintf("topic opened for <b>#%d</b>: %s", id, safe(title))
 }
 
 func voiceTopicExists(id int) string {
-	return fmt.Sprintf("<b>#%d</b> already has a war room. No duplicate doors today.", id)
+	return fmt.Sprintf("<b>#%d</b> already has a topic.", id)
 }
 
 func voiceDigestSent() string {
-	return "Digest shipped to the CTF topic. Calendar violence delivered."
+	return "digest sent to the ctf topic."
 }
 
 func voiceUsageEdit() string {
-	return "Shape it like this: <code>/ctfedit &lt;ctf_id&gt; &lt;new initial topic message&gt;</code>"
+	return "shape it like this: <code>/ctfedit &lt;ctf_id&gt; &lt;new topic msg&gt;</code>"
 }
 
 func voiceUsageRefresh() string {
-	return "Point me at one: <code>/ctfrefresh &lt;ctf_id&gt;</code>"
+	return "give me the id bruv: <code>/ctfrefresh &lt;ctf_id&gt;</code>"
 }
 
 func voiceUsageTopic() string {
-	return "Point me at one: <code>/ctftopic &lt;ctf_id&gt;</code>"
+	return "give me the id bruv: <code>/ctftopic &lt;ctf_id&gt;</code>"
 }
 
 func voiceCallbackBooting() string {
-	return "CTF desk is still booting"
+	return "ctf desk still booting"
 }
 
 func voiceCallbackNoUser() string {
-	return "I cannot tell who clicked that"
+	return "idk who clicked that"
 }
 
 func voiceCallbackBadButton() string {
-	return "That button came in sideways"
+	return "that button is weird"
 }
 
 func voiceCallbackMissingCTF() string {
-	return "That CTF fell off the map"
+	return "that ctf fell off the map"
 }
 
 func voiceCallbackVoteFailed() string {
-	return "Could not save the vote. Rude database moment."
+	return "vote did not stick. poke it again"
 }
 
 func voiceCallbackJoined(createdTopic bool, joined bool, count int) string {
 	switch {
 	case createdTopic:
-		return fmt.Sprintf("You're in. War room opened with %d on deck.", count)
+		return fmt.Sprintf("you are in. topic opened with %d on deck.", count)
 	case joined:
-		return fmt.Sprintf("You're in. Roster is at %d.", count)
+		return fmt.Sprintf("you are in. roster is at %d.", count)
 	default:
-		return fmt.Sprintf("Already counted. Still %d on deck.", count)
+		return fmt.Sprintf("already counted. still %d on deck.", count)
 	}
 }
 
 func voiceRosterJoined(user *models.User) string {
-	return fmt.Sprintf("%s is on the roster.", userMention(user))
+	return fmt.Sprintf("%s joined the roster.", userMention(user))
 }
 
 func localStamp(t time.Time) string {
