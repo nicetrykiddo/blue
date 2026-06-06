@@ -42,8 +42,8 @@ func voiceUpcomingList(now time.Time, days int) listViewCopy {
 	}
 }
 
-func voiceManualCreated(id int, title string) string {
-	return fmt.Sprintf("ctf <b>#%d</b> added: %s", id, safe(title))
+func voiceManualCreated(title string) string {
+	return fmt.Sprintf("ctf added: <b>%s</b>", safe(title))
 }
 
 func voiceSavedError() string {
@@ -78,20 +78,20 @@ func voiceDigestFailed() string {
 	return "digest did not send. try again"
 }
 
-func voiceEdited(id int) string {
-	return fmt.Sprintf("updated <b>#%d</b>. opening msg changed.", id)
+func voiceEdited(title string) string {
+	return fmt.Sprintf("updated <b>%s</b>. opening msg changed.", safe(title))
 }
 
-func voiceRefreshed(id int) string {
-	return fmt.Sprintf("refreshed <b>#%d</b>. topic msg is back in shape.", id)
+func voiceRefreshed(title string) string {
+	return fmt.Sprintf("refreshed <b>%s</b>. topic msg is back in shape.", safe(title))
 }
 
-func voiceTopicCreated(id int, title string) string {
-	return fmt.Sprintf("topic opened for <b>#%d</b>: %s", id, safe(title))
+func voiceTopicCreated(title string) string {
+	return fmt.Sprintf("topic opened for <b>%s</b>", safe(title))
 }
 
-func voiceTopicExists(id int) string {
-	return fmt.Sprintf("<b>#%d</b> already has a topic.", id)
+func voiceTopicExists(title string) string {
+	return fmt.Sprintf("<b>%s</b> already has a topic.", safe(title))
 }
 
 func voiceDigestSent() string {

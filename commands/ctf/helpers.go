@@ -152,9 +152,9 @@ func participantMentions(participants []database.CTFParticipant, limit int) stri
 		mentions = append(mentions, participantMention(participants[i]))
 	}
 	if len(participants) > limit {
-		mentions = append(mentions, fmt.Sprintf("+%d more", len(participants)-limit))
+		mentions = append(mentions, "...")
 	}
-	return strings.Join(mentions, " ")
+	return strings.Join(mentions, ", ")
 }
 
 func participantMention(participant database.CTFParticipant) string {

@@ -30,7 +30,7 @@ func formatEventCard(index int, event database.CTFEvent) string {
 		venue += " | " + event.Location
 	}
 
-	title := fmt.Sprintf("<b>%d. %s</b> <code>#%d</code>", index, safe(event.Title), event.ID)
+	title := fmt.Sprintf("<b>%d. %s</b>", index, safe(event.Title))
 	details := []string{
 		fmt.Sprintf("starts: <b>%s</b>", safe(event.StartTime.In(loc).Format("Mon, 02 Jan 15:04 MST"))),
 		fmt.Sprintf("ends: %s", safe(event.FinishTime.In(loc).Format("Mon, 02 Jan 15:04 MST"))),
@@ -64,11 +64,12 @@ func formatTopicInitialMessage(event database.CTFEvent) string {
 	view.field("where", safe(eventLocation(event)))
 
 	if event.Prizes != "" {
-		view.field("prizes", safe(truncate(event.Prizes, 350)))
+		view.rawLine("prizes:")
+		view.rawLine(expandableQuote([]string{safe(truncate(event.Prizes, 900))}))
 	}
 
-	if count, err := db.GetCTFParticipantCount(event.ID); err == nil {
-		view.field("roster", fmt.Sprintf("%d", count))
+	if participants, err := db.ListCTFParticipants(event.ID); err == nil && len(participants) > 0 {
+		view.field("roster", participantMentions(participants, 10))
 	}
 
 	links := make([]string, 0, 2)
@@ -85,7 +86,8 @@ func formatTopicInitialMessage(event database.CTFEvent) string {
 
 	if event.Description != "" {
 		view.blank()
-		view.rawLine(safe(truncate(event.Description, 700)))
+		view.rawLine("info:")
+		view.rawLine(expandableQuote([]string{safe(truncate(event.Description, 1400))}))
 	}
 
 	return view.text()
@@ -118,9 +120,9 @@ func joinKeyboard(events []database.CTFEvent) *models.InlineKeyboardMarkup {
 	rows := make([][]models.InlineKeyboardButton, 0, limit)
 	for i := 0; i < limit; i++ {
 		event := events[i]
-		label := fmt.Sprintf("I'm in #%d", event.ID)
+		label := "I'm in"
 		if event.VoteCount > 0 {
-			label = fmt.Sprintf("I'm in #%d (%d)", event.ID, event.VoteCount)
+			label = fmt.Sprintf("I'm in (%d)", event.VoteCount)
 		}
 		rows = append(rows, []models.InlineKeyboardButton{{Text: label, CallbackData: callbackJoin + strconv.Itoa(event.ID)}})
 	}
@@ -130,7 +132,7 @@ func joinKeyboard(events []database.CTFEvent) *models.InlineKeyboardMarkup {
 
 func singleJoinKeyboard(event database.CTFEvent) *models.InlineKeyboardMarkup {
 	rows := [][]models.InlineKeyboardButton{
-		{{Text: fmt.Sprintf("I'm in #%d", event.ID), CallbackData: callbackJoin + strconv.Itoa(event.ID)}},
+		{{Text: "I'm in", CallbackData: callbackJoin + strconv.Itoa(event.ID)}},
 	}
 
 	linkRow := []models.InlineKeyboardButton{}

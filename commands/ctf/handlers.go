@@ -87,7 +87,7 @@ func addCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
 		}
 	}
 
-	replyHTML(bot, msg, voiceManualCreated(saved.ID, saved.Title), nil)
+	replyHTML(bot, msg, voiceManualCreated(saved.Title), nil)
 }
 
 func editCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
@@ -119,7 +119,7 @@ func editCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
 		return
 	}
 
-	replyHTML(bot, msg, voiceEdited(event.ID), nil)
+	replyHTML(bot, msg, voiceEdited(event.Title), nil)
 }
 
 func refreshCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
@@ -151,7 +151,7 @@ func refreshCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
 		return
 	}
 
-	replyHTML(bot, msg, voiceRefreshed(event.ID), nil)
+	replyHTML(bot, msg, voiceRefreshed(event.Title), nil)
 }
 
 func topicCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
@@ -180,9 +180,9 @@ func topicCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
 	}
 
 	if topicCreated {
-		replyHTML(bot, msg, voiceTopicCreated(event.ID, event.Title), nil)
+		replyHTML(bot, msg, voiceTopicCreated(event.Title), nil)
 	} else {
-		replyHTML(bot, msg, voiceTopicExists(event.ID), nil)
+		replyHTML(bot, msg, voiceTopicExists(event.Title), nil)
 	}
 }
 
