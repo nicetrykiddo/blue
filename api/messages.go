@@ -277,6 +277,10 @@ func (b *Bot) sendBoolRequest(endpoint string, payload map[string]interface{}) e
 		return err
 	}
 
+	return parseBoolResponse(body)
+}
+
+func parseBoolResponse(body []byte) error {
 	var result struct {
 		OK          bool   `json:"ok"`
 		Description string `json:"description,omitempty"`

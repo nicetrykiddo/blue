@@ -16,6 +16,7 @@ type Config struct {
 	WebhookURL            string
 	WebhookSecret         string
 	WebhookPath           string
+	WebhookCertificate    string
 	ListenAddr            string
 	LogChatID             int64
 	CTFTopicID            int
@@ -90,6 +91,7 @@ func Load() *Config {
 		WebhookURL:            webhookURL,
 		WebhookSecret:         webhookSecret,
 		WebhookPath:           webhookPath,
+		WebhookCertificate:    os.Getenv("WEBHOOK_CERTIFICATE"),
 		ListenAddr:            listenAddr,
 		LogChatID:             getEnvInt64("LOG_CHAT_ID", 0),
 		CTFTopicID:            getEnvInt("CTF_TOPIC_ID", 0),

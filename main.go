@@ -28,10 +28,14 @@ func main() {
 	handler := handlers.NewHandler(bot, db, cfg)
 	ctf.StartDailyScheduler(bot, db, cfg)
 
-	if err := bot.SetWebhook(cfg.WebhookURL, cfg.WebhookSecret); err != nil {
+	if err := bot.SetWebhookWithOptions(api.WebhookOptions{
+		URL:             cfg.WebhookURL,
+		SecretToken:     cfg.WebhookSecret,
+		CertificateFile: cfg.WebhookCertificate,
+	}); err != nil {
 		log.Fatalf("Failed to set webhook: %v", err)
 	}
-	log.Printf("Webhook set to: %s", cfg.WebhookURL)
+	log.Println("Webhook registered")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc(cfg.WebhookPath, func(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +86,7 @@ func main() {
 		IdleTimeout:       60 * time.Second,
 	}
 
-	log.Printf("Bot started. Listening on %s, webhook path %s...", cfg.ListenAddr, cfg.WebhookPath)
+	log.Printf("Bot started. Listening on %s...", cfg.ListenAddr)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
