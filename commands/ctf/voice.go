@@ -132,8 +132,10 @@ func voiceCallbackVoteFailed() string {
 
 func voiceCallbackJoined(createdTopic bool, joined bool, count int) string {
 	switch {
-	case createdTopic:
+	case createdTopic && joined:
 		return fmt.Sprintf("you are in. topic opened with %d on deck.", count)
+	case createdTopic:
+		return fmt.Sprintf("topic opened. roster is at %d.", count)
 	case joined:
 		return fmt.Sprintf("you are in. roster is at %d.", count)
 	default:

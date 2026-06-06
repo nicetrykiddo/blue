@@ -40,10 +40,10 @@ func handleJoinCallback(bot *api.Bot, query *models.CallbackQuery) {
 
 	chatID := callbackChatID(query)
 	createdTopic := false
-	if chatID != 0 && event.ForumTopicID == 0 && count >= cfg.CTFTopicVoteThreshold {
+	if chatID != 0 && (event.ForumTopicID != 0 || count >= cfg.CTFTopicVoteThreshold) {
 		createdTopic, err = ensureCTFTopic(bot, chatID, event)
 		if err != nil {
-			log.Printf("Error creating CTF topic after vote: %v", err)
+			log.Printf("Error repairing CTF topic after vote: %v", err)
 		}
 	}
 
@@ -53,12 +53,6 @@ func handleJoinCallback(bot *api.Bot, query *models.CallbackQuery) {
 			log.Printf("Error announcing CTF join: %v", err)
 		}
 	}
-	if chatID != 0 && event != nil && event.InitialMessageID != 0 {
-		if _, err := bot.EditHTMLMessageWithKeyboard(chatID, event.InitialMessageID, formatTopicInitialMessage(*event), singleJoinKeyboard(*event)); err != nil {
-			log.Printf("Error refreshing CTF topic message after vote: %v", err)
-		}
-	}
-
 	bot.AnswerCallbackQuery(query.ID, voiceCallbackJoined(createdTopic, joined, count))
 }
 
