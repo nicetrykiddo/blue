@@ -259,12 +259,17 @@ func helpCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
 
 <code>/livectfs</code> - what is burning rn
 <code>/upcomingctfs [days]</code> - upcoming ctfs
+<code>/imout</code> - leave this ctf topic`
+	if canManageCTFs(msg.From) {
+		text += `
+
+<b>admin commands</b>
 <code>/ctfsync</code> - send today's digest rn
-<code>/imout</code> - leave this ctf topic
 <code>/newctf</code> - guided form to add one
 <code>/openctf</code> - choose one and open its topic
 <code>/editctf</code> - edit this topic or choose one
 <code>/refreshctf</code> - refresh this topic or choose one
 <code>/cancel</code> - cancel your active form`
+	}
 	replyHTML(bot, msg, text, nil)
 }

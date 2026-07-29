@@ -6,7 +6,7 @@ import (
 	"blue/commands/admin"
 	"blue/commands/ctf"
 	"blue/commands/group"
-	_ "blue/commands/user"
+	"blue/commands/user"
 	"blue/config"
 	"blue/database"
 	"blue/models"
@@ -29,6 +29,7 @@ func NewHandler(bot *api.Bot, db *database.DB, cfg *config.Config) *Handler {
 	admin.SetDatabase(db)
 	ctf.SetServices(db, cfg)
 	group.SetServices(cfg, db)
+	user.SetConfig(cfg)
 	handler := &Handler{
 		bot: bot,
 		db:  db,

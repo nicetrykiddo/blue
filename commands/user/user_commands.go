@@ -3,12 +3,19 @@ package user
 import (
 	"blue/api"
 	"blue/commands"
+	"blue/config"
 	"blue/models"
 	"fmt"
 	"html"
 	"log"
 	"strings"
 )
+
+var cfg *config.Config
+
+func SetConfig(config *config.Config) {
+	cfg = config
+}
 
 func init() {
 	commands.Register("/start", startHandler)
@@ -33,10 +40,20 @@ func helpHandler(bot *api.Bot, msg *models.Message, args []string) {
 <code>/id</code> - user, chat and topic ids
 <code>/stats</code> - bot numbers
 <code>/livectfs</code> - ctfs happening rn
-<code>/upcomingctfs</code> - ctfs coming up
+<code>/upcomingctfs</code> - ctfs coming up`
+	if cfg != nil && msg.From != nil && cfg.AdminUserIDs[msg.From.ID] {
+		text += `
+
+<b>admin commands</b>
 <code>/newctf</code> - guided new ctf form
 <code>/editctf</code> - edit a ctf topic
-<code>/openctf</code> - create a ctf topic`
+<code>/openctf</code> - create a ctf topic
+<code>/refreshctf</code> - refresh a ctf topic
+<code>/ctfsync</code> - send the digest now
+<code>/allowreaction</code> - approve replied custom emoji
+<code>/removereaction</code> - remove replied custom emoji
+<code>/clearreactions</code> - clear approved custom emoji`
+	}
 	replyHTML(bot, msg, text)
 }
 

@@ -116,6 +116,17 @@ func (b *Bot) SetCommands(commands []BotCommand) error {
 	return b.sendBoolRequest("/setMyCommands", map[string]interface{}{"commands": commands})
 }
 
+func (b *Bot) SetCommandsForChatMember(commands []BotCommand, chatID, userID int64) error {
+	return b.sendBoolRequest("/setMyCommands", map[string]interface{}{
+		"commands": commands,
+		"scope": map[string]interface{}{
+			"type":    "chat_member",
+			"chat_id": chatID,
+			"user_id": userID,
+		},
+	})
+}
+
 func (b *Bot) SetCustomMessageReaction(chatID int64, messageID int, customEmojiID string) error {
 	return b.sendBoolRequest("/setMessageReaction", map[string]interface{}{
 		"chat_id":    chatID,

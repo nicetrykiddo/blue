@@ -39,7 +39,7 @@ func main() {
 	}
 	log.Println("Webhook registered")
 
-	if err := bot.SetCommands(commands.Menu()); err != nil {
+	if err := commands.ConfigureMenu(bot, cfg.GroupID, cfg.AdminUserIDs); err != nil {
 		log.Printf("Could not update Telegram command menu: %v", err)
 	}
 
