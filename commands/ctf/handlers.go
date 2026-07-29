@@ -16,7 +16,7 @@ func liveCTFsHandler(bot *api.Bot, msg *models.Message, args []string) {
 
 	working := startWorkingReply(bot, msg, voiceLoadingLive)
 	now := time.Now()
-	if _, err := refreshEvents(now.AddDate(0, 0, -7), now.AddDate(0, 0, 1), 100); err != nil {
+	if _, err := refreshEventsIfStale("live", now.AddDate(0, 0, -7), now.AddDate(0, 0, 1), 100); err != nil {
 		log.Printf("Error refreshing live CTFs: %v", err)
 	}
 	advanceWorkingReply(bot, msg, working, voiceLoadingLiveDone)
@@ -46,7 +46,7 @@ func upcomingCTFsHandler(bot *api.Bot, msg *models.Message, args []string) {
 	}
 
 	now := time.Now()
-	if _, err := refreshUpcomingEvents(now, days, 100); err != nil {
+	if _, err := refreshUpcomingEventsIfStale(now, days, 100); err != nil {
 		log.Printf("Error refreshing upcoming CTFs: %v", err)
 	}
 	advanceWorkingReply(bot, msg, working, voiceLoadingFutureDone)
@@ -228,6 +228,11 @@ func imOutHandler(bot *api.Bot, msg *models.Message, args []string) {
 		return
 	}
 
+	if !removed {
+		replyHTML(bot, msg, voiceImOutWasNotIn(), nil)
+		return
+	}
+
 	if count == 0 {
 		replyHTML(bot, msg, voiceImOutClosed(), nil)
 		if err := db.ClearCTFReminder(event.ID, reminderKeyStart); err != nil {
@@ -240,11 +245,6 @@ func imOutHandler(bot *api.Bot, msg *models.Message, args []string) {
 		if err := db.ClearCTFTopic(event.ID); err != nil {
 			log.Printf("Error clearing empty CTF topic: %v", err)
 		}
-		return
-	}
-
-	if !removed {
-		replyHTML(bot, msg, voiceImOutWasNotIn(), nil)
 		return
 	}
 
@@ -261,9 +261,10 @@ func helpCTFHandler(bot *api.Bot, msg *models.Message, args []string) {
 <code>/upcomingctfs [days]</code> - upcoming ctfs
 <code>/ctfsync</code> - send today's digest rn
 <code>/imout</code> - leave this ctf topic
-<code>/ctfadd</code> - add one by hand
-<code>/ctftopic &lt;id&gt;</code> - open the topic
-<code>/ctfedit &lt;id&gt; &lt;text&gt;</code> - rewrite the opening msg
-<code>/ctfrefresh &lt;id&gt;</code> - refresh the opening msg`
+<code>/newctf</code> - guided form to add one
+<code>/openctf</code> - choose one and open its topic
+<code>/editctf</code> - edit this topic or choose one
+<code>/refreshctf</code> - refresh this topic or choose one
+<code>/cancel</code> - cancel your active form`
 	replyHTML(bot, msg, text, nil)
 }

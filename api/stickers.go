@@ -34,3 +34,25 @@ func (b *Bot) GetStickerSet(name string) (*models.StickerSet, error) {
 
 	return &result.Result, nil
 }
+
+func (b *Bot) GetForumTopicIconStickers() ([]models.Sticker, error) {
+	resp, err := b.client.Get(b.apiURL + "/getForumTopicIconStickers")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result models.GetStickersResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+	if !result.OK {
+		return nil, fmt.Errorf("failed to get forum topic icons: %s", result.Description)
+	}
+	return result.Result, nil
+}

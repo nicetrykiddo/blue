@@ -46,7 +46,7 @@ func startReminderScheduler(bot *api.Bot) {
 				log.Printf("Error sending CTF reminders: %v", err)
 			}
 
-			timer.Reset(time.Minute)
+			timer.Reset(15 * time.Minute)
 		}
 	}()
 }

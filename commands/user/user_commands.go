@@ -30,10 +30,13 @@ func startHandler(bot *api.Bot, msg *models.Message, args []string) {
 func helpHandler(bot *api.Bot, msg *models.Message, args []string) {
 	text := `<b>stuff i can do rn</b>
 
-<code>/info</code> - ids and topic id
+<code>/id</code> - user, chat and topic ids
 <code>/stats</code> - bot numbers
 <code>/livectfs</code> - ctfs happening rn
-<code>/upcomingctfs</code> - ctfs coming up`
+<code>/upcomingctfs</code> - ctfs coming up
+<code>/newctf</code> - guided new ctf form
+<code>/editctf</code> - edit a ctf topic
+<code>/openctf</code> - create a ctf topic`
 	replyHTML(bot, msg, text)
 }
 

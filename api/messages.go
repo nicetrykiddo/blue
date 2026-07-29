@@ -15,6 +15,7 @@ type SendMessageOptions struct {
 	MessageThreadID       int
 	ReplyToMessageID      int
 	ReplyMarkup           *models.InlineKeyboardMarkup
+	ForceReplyPlaceholder string
 	DisableWebPagePreview bool
 }
 
@@ -25,6 +26,11 @@ type EditMessageOptions struct {
 	ParseMode             string
 	ReplyMarkup           *models.InlineKeyboardMarkup
 	DisableWebPagePreview bool
+}
+
+type BotCommand struct {
+	Command     string `json:"command"`
+	Description string `json:"description"`
 }
 
 func (b *Bot) SendMessage(chatID int64, text string) (*models.Message, error) {
@@ -104,6 +110,49 @@ func (b *Bot) SendChatAction(chatID int64, action string) error {
 	}
 
 	return b.sendBoolRequest("/sendChatAction", payload)
+}
+
+func (b *Bot) SetCommands(commands []BotCommand) error {
+	return b.sendBoolRequest("/setMyCommands", map[string]interface{}{"commands": commands})
+}
+
+func (b *Bot) SetCustomMessageReaction(chatID int64, messageID int, customEmojiID string) error {
+	return b.sendBoolRequest("/setMessageReaction", map[string]interface{}{
+		"chat_id":    chatID,
+		"message_id": messageID,
+		"reaction": []map[string]string{{
+			"type":            "custom_emoji",
+			"custom_emoji_id": customEmojiID,
+		}},
+	})
+}
+
+func (b *Bot) GetChat(chatID int64) (*models.Chat, error) {
+	payload := map[string]interface{}{"chat_id": chatID}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := b.client.Post(b.apiURL+"/getChat", "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result models.GetChatResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+	if !result.OK {
+		return nil, fmt.Errorf("telegram API request failed: %s", result.Description)
+	}
+	return &result.Result, nil
 }
 
 func (b *Bot) SendHTMLMessage(chatID int64, text string) (*models.Message, error) {
@@ -195,6 +244,13 @@ func (b *Bot) SendMessageWithOptions(opts SendMessageOptions) (*models.Message, 
 	}
 	if opts.ReplyMarkup != nil {
 		payload["reply_markup"] = opts.ReplyMarkup
+	}
+	if opts.ForceReplyPlaceholder != "" {
+		payload["reply_markup"] = map[string]interface{}{
+			"force_reply":             true,
+			"input_field_placeholder": opts.ForceReplyPlaceholder,
+			"selective":               true,
+		}
 	}
 	if opts.DisableWebPagePreview {
 		payload["disable_web_page_preview"] = true
@@ -317,10 +373,13 @@ func (b *Bot) AnswerCallbackQuery(callbackQueryID string, text string) error {
 	return b.sendBoolRequest("/answerCallbackQuery", payload)
 }
 
-func (b *Bot) CreateForumTopic(chatID int64, name string) (*models.ForumTopic, error) {
+func (b *Bot) CreateForumTopic(chatID int64, name, iconCustomEmojiID string) (*models.ForumTopic, error) {
 	payload := map[string]interface{}{
 		"chat_id": chatID,
 		"name":    name,
+	}
+	if iconCustomEmojiID != "" {
+		payload["icon_custom_emoji_id"] = iconCustomEmojiID
 	}
 
 	data, err := json.Marshal(payload)

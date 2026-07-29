@@ -57,11 +57,11 @@ func handleJoinCallback(bot *api.Bot, query *models.CallbackQuery) {
 }
 
 func callbackChatID(query *models.CallbackQuery) int64 {
+	if cfg != nil && cfg.GroupID != 0 {
+		return cfg.GroupID
+	}
 	if query.Message != nil && query.Message.Chat != nil {
 		return query.Message.Chat.ID
-	}
-	if cfg != nil {
-		return cfg.GroupID
 	}
 	return 0
 }

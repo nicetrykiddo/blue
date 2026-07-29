@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"time"
 )
 
 const baseURL = "https://api.telegram.org/bot"
@@ -16,6 +17,6 @@ func NewBot(token string) *Bot {
 	return &Bot{
 		token:  token,
 		apiURL: baseURL + token,
-		client: &http.Client{},
+		client: &http.Client{Timeout: 15 * time.Second},
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -31,8 +32,30 @@ type ctftimeEvent struct {
 	Finish       string `json:"finish"`
 }
 
+var ctfSync = struct {
+	sync.Mutex
+	last map[string]time.Time
+}{last: make(map[string]time.Time)}
+
 func refreshUpcomingEvents(now time.Time, days int, limit int) ([]database.CTFEvent, error) {
 	return refreshEvents(now.Add(-2*time.Hour), now.AddDate(0, 0, days), limit)
+}
+
+func refreshEventsIfStale(key string, start, finish time.Time, limit int) ([]database.CTFEvent, error) {
+	ctfSync.Lock()
+	defer ctfSync.Unlock()
+	if time.Since(ctfSync.last[key]) < 15*time.Minute {
+		return nil, nil
+	}
+	events, err := refreshEvents(start, finish, limit)
+	if err == nil {
+		ctfSync.last[key] = time.Now()
+	}
+	return events, err
+}
+
+func refreshUpcomingEventsIfStale(now time.Time, days, limit int) ([]database.CTFEvent, error) {
+	return refreshEventsIfStale("upcoming", now.Add(-2*time.Hour), now.AddDate(0, 0, days), limit)
 }
 
 func refreshEvents(start, finish time.Time, limit int) ([]database.CTFEvent, error) {
@@ -71,7 +94,7 @@ func fetchCTFTimeEvents(ctx context.Context, start, finish time.Time, limit int)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Set("User-Agent", "blue-telegram-bot/1.0")
+	request.Header.Set("User-Agent", "maple/1.0")
 	request.Header.Set("Accept", "application/json")
 
 	response, err := http.DefaultClient.Do(request)

@@ -61,13 +61,7 @@ func groupOrMessageChatID(msg *models.Message) int64 {
 }
 
 func canManageCTFs(user *models.User) bool {
-	if cfg == nil || len(cfg.AdminUserIDs) == 0 {
-		return true
-	}
-	if user == nil {
-		return false
-	}
-	return cfg.AdminUserIDs[user.ID]
+	return cfg != nil && user != nil && cfg.AdminUserIDs[user.ID]
 }
 
 func defaultLookaheadDays() int {
@@ -184,16 +178,16 @@ func safe(value string) string {
 }
 
 func safeURL(value string) string {
-	parsed, err := url.Parse(strings.TrimSpace(value))
-	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
-		return ""
-	}
-	return html.EscapeString(parsed.String())
+	return html.EscapeString(httpURL(value))
 }
 
 func buttonURL(value string) string {
+	return httpURL(value)
+}
+
+func httpURL(value string) string {
 	parsed, err := url.Parse(strings.TrimSpace(value))
-	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+	if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
 		return ""
 	}
 	return parsed.String()
