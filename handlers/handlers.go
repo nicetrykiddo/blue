@@ -269,6 +269,9 @@ func reactionChanceDenominator(msg *models.Message, botUserID int64, botUsername
 }
 
 func talkingToBot(msg *models.Message, botUserID int64, botUsername string) bool {
+	if msg.Chat != nil && msg.Chat.Type == "private" {
+		return true
+	}
 	if botUserID != 0 && msg.ReplyToMessage != nil && msg.ReplyToMessage.From != nil &&
 		msg.ReplyToMessage.From.ID == botUserID {
 		return true

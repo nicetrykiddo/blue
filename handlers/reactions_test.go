@@ -50,6 +50,9 @@ func TestAdminReactionEligibilityIncludesPrivateChats(t *testing.T) {
 	if !eligibleForAdminReaction(msg, cfg) {
 		t.Fatal("admin DM should be eligible for a reaction")
 	}
+	if got := reactionChanceDenominator(msg, 99, "maple_bot"); got != 2 {
+		t.Fatalf("admin DM should use 1/2 chance, got 1/%d", got)
+	}
 }
 
 func TestChannelPostIsEligibleWithoutExposingAuthor(t *testing.T) {
