@@ -232,17 +232,20 @@ func (h *Handler) replyCommand(msg *models.Message, text string) {
 }
 
 func shouldReactToAdmin(msg *models.Message, cfg *config.Config, botUserID int64, botUsername string) bool {
+	if !eligibleForAdminReaction(msg, cfg) {
+		return false
+	}
+	return rand.Intn(reactionChanceDenominator(msg, botUserID, botUsername)) == 0
+}
+
+func eligibleForAdminReaction(msg *models.Message, cfg *config.Config) bool {
 	if cfg == nil || msg == nil || msg.From == nil || msg.Chat == nil {
 		return false
 	}
-	if msg.Chat.Type != "group" && msg.Chat.Type != "supergroup" {
+	if !cfg.AdminUserIDs[msg.From.ID] {
 		return false
 	}
-	if msg.Text == "" || strings.HasPrefix(msg.Text, "/") || !cfg.AdminUserIDs[msg.From.ID] {
-		return false
-	}
-
-	return rand.Intn(reactionChanceDenominator(msg, botUserID, botUsername)) == 0
+	return msg.Text != "" && !strings.HasPrefix(msg.Text, "/")
 }
 
 func reactionChanceDenominator(msg *models.Message, botUserID int64, botUsername string) int {

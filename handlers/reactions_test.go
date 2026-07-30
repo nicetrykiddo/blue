@@ -35,8 +35,20 @@ func TestAdminReactionChanceDependsOnTalkingToBot(t *testing.T) {
 	}
 
 	msg.From.ID = 9
-	if shouldReactToAdmin(msg, cfg, 99, "maple_bot") {
-		t.Fatal("non-admin message received a reaction")
+	if eligibleForAdminReaction(msg, cfg) {
+		t.Fatal("non-admin message was eligible for a reaction")
+	}
+}
+
+func TestAdminReactionEligibilityIncludesPrivateChats(t *testing.T) {
+	cfg := &config.Config{AdminUserIDs: map[int64]bool{8: true}}
+	msg := &models.Message{
+		From: &models.User{ID: 8},
+		Chat: &models.Chat{ID: 8, Type: "private"},
+		Text: "hello",
+	}
+	if !eligibleForAdminReaction(msg, cfg) {
+		t.Fatal("admin DM should be eligible for a reaction")
 	}
 }
 
