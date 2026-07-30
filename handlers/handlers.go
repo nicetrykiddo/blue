@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"html"
 	"log"
+	"math/rand"
 	"strings"
 	"sync"
 )
@@ -241,11 +242,14 @@ func shouldReactToAdmin(msg *models.Message, cfg *config.Config, botUserID int64
 		return false
 	}
 
-	value := uint64(msg.MessageID) ^ uint64(msg.From.ID)
+	return rand.Intn(reactionChanceDenominator(msg, botUserID, botUsername)) == 0
+}
+
+func reactionChanceDenominator(msg *models.Message, botUserID int64, botUsername string) int {
 	if talkingToBot(msg, botUserID, botUsername) {
-		return value%2 == 0
+		return 2
 	}
-	return value%20 == 0
+	return 20
 }
 
 func talkingToBot(msg *models.Message, botUserID int64, botUsername string) bool {

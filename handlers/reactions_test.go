@@ -9,41 +9,29 @@ import (
 func TestAdminReactionChanceDependsOnTalkingToBot(t *testing.T) {
 	cfg := &config.Config{AdminUserIDs: map[int64]bool{8: true}}
 	msg := &models.Message{
-		MessageID: 16,
-		From:      &models.User{ID: 8},
-		Chat:      &models.Chat{ID: -1, Type: "supergroup"},
-		Text:      "nice",
+		From: &models.User{ID: 8},
+		Chat: &models.Chat{ID: -1, Type: "supergroup"},
+		Text: "nice",
 		ReplyToMessage: &models.Message{
 			From: &models.User{ID: 99, IsBot: true},
 		},
 	}
 
-	if !shouldReactToAdmin(msg, cfg, 99, "maple_bot") {
-		t.Fatal("expected eligible reply to the bot to receive a reaction")
+	if got := reactionChanceDenominator(msg, 99, "maple_bot"); got != 2 {
+		t.Fatalf("expected 1/2 chance for a reply to the bot, got 1/%d", got)
 	}
-	msg.MessageID++
-	if shouldReactToAdmin(msg, cfg, 99, "maple_bot") {
-		t.Fatal("expected half of replies to skip reactions")
-	}
-
 	msg.ReplyToMessage = nil
-	msg.MessageID = 28
-	if !shouldReactToAdmin(msg, cfg, 99, "maple_bot") {
-		t.Fatal("expected low-chance ordinary message to receive a reaction")
-	}
-	msg.MessageID++
-	if shouldReactToAdmin(msg, cfg, 99, "maple_bot") {
-		t.Fatal("expected most ordinary messages to skip reactions")
+	if got := reactionChanceDenominator(msg, 99, "maple_bot"); got != 20 {
+		t.Fatalf("expected 1/20 chance for an ordinary message, got 1/%d", got)
 	}
 
-	msg.MessageID = 16
 	msg.Text = "yo @maple_bot!"
-	if !shouldReactToAdmin(msg, cfg, 99, "maple_bot") {
-		t.Fatal("expected exact bot mention to use the higher chance")
+	if got := reactionChanceDenominator(msg, 99, "maple_bot"); got != 2 {
+		t.Fatalf("expected exact mention to use 1/2 chance, got 1/%d", got)
 	}
 	msg.Text = "yo @maple_bot_fake"
-	if shouldReactToAdmin(msg, cfg, 99, "maple_bot") {
-		t.Fatal("longer username must not count as a bot mention")
+	if got := reactionChanceDenominator(msg, 99, "maple_bot"); got != 20 {
+		t.Fatalf("longer username must use 1/20 chance, got 1/%d", got)
 	}
 
 	msg.From.ID = 9
