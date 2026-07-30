@@ -52,6 +52,22 @@ func TestAdminReactionEligibilityIncludesPrivateChats(t *testing.T) {
 	}
 }
 
+func TestChannelPostIsEligibleWithoutExposingAuthor(t *testing.T) {
+	cfg := &config.Config{AdminUserIDs: map[int64]bool{8: true}}
+	msg := &models.Message{
+		Chat: &models.Chat{ID: -100, Type: "channel"},
+		Text: "new post",
+	}
+	if !eligibleForAdminReaction(msg, cfg) {
+		t.Fatal("channel post should be treated as admin-authored")
+	}
+
+	handler := &Handler{customReactionEmojis: []string{"approved"}}
+	if got := handler.customReactionEmoji(msg); got != "approved" {
+		t.Fatalf("expected approved channel reaction, got %q", got)
+	}
+}
+
 func TestCustomReactionIDsComeOnlyFromRepliedMessage(t *testing.T) {
 	msg := &models.Message{
 		Entities: []models.MessageEntity{{Type: "custom_emoji", CustomEmojiID: "ignored"}},

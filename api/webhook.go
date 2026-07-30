@@ -30,7 +30,7 @@ func (b *Bot) SetWebhookWithOptions(opts WebhookOptions) error {
 	payload := map[string]interface{}{
 		"url":             opts.URL,
 		"secret_token":    opts.SecretToken,
-		"allowed_updates": []string{"message", "callback_query"},
+		"allowed_updates": []string{"message", "channel_post", "callback_query"},
 	}
 
 	if opts.CertificateFile != "" {
@@ -56,7 +56,7 @@ func (b *Bot) setWebhookWithCertificate(opts WebhookOptions) error {
 	if err := writer.WriteField("secret_token", opts.SecretToken); err != nil {
 		return err
 	}
-	if err := writer.WriteField("allowed_updates", `["message","callback_query"]`); err != nil {
+	if err := writer.WriteField("allowed_updates", `["message","channel_post","callback_query"]`); err != nil {
 		return err
 	}
 

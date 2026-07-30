@@ -64,6 +64,13 @@ func (h *Handler) HandleUpdate(update models.Update) {
 		return
 	}
 
+	if update.ChannelPost != nil {
+		if update.ChannelPost.Text != "" && !strings.HasPrefix(update.ChannelPost.Text, "/") {
+			h.maybeReactToAdminMessage(update.ChannelPost)
+		}
+		return
+	}
+
 	if update.Message == nil {
 		return
 	}
@@ -117,7 +124,10 @@ func (h *Handler) customReactionEmoji(msg *models.Message) string {
 	if len(h.customReactionEmojis) == 0 {
 		return ""
 	}
-	value := uint64(msg.MessageID) ^ uint64(msg.From.ID)
+	value := uint64(msg.MessageID) ^ uint64(msg.Chat.ID)
+	if msg.From != nil {
+		value ^= uint64(msg.From.ID)
+	}
 	return h.customReactionEmojis[(value/8)%uint64(len(h.customReactionEmojis))]
 }
 
@@ -239,13 +249,16 @@ func shouldReactToAdmin(msg *models.Message, cfg *config.Config, botUserID int64
 }
 
 func eligibleForAdminReaction(msg *models.Message, cfg *config.Config) bool {
-	if cfg == nil || msg == nil || msg.From == nil || msg.Chat == nil {
+	if cfg == nil || msg == nil || msg.Chat == nil {
 		return false
 	}
-	if !cfg.AdminUserIDs[msg.From.ID] {
+	if msg.Text == "" || strings.HasPrefix(msg.Text, "/") {
 		return false
 	}
-	return msg.Text != "" && !strings.HasPrefix(msg.Text, "/")
+	if msg.Chat.Type == "channel" {
+		return true
+	}
+	return msg.From != nil && cfg.AdminUserIDs[msg.From.ID]
 }
 
 func reactionChanceDenominator(msg *models.Message, botUserID int64, botUsername string) int {

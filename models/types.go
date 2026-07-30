@@ -3,6 +3,7 @@ package models
 type Update struct {
 	UpdateID      int            `json:"update_id"`
 	Message       *Message       `json:"message,omitempty"`
+	ChannelPost   *Message       `json:"channel_post,omitempty"`
 	CallbackQuery *CallbackQuery `json:"callback_query,omitempty"`
 }
 
