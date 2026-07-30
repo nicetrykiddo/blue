@@ -23,6 +23,8 @@ type Handler struct {
 	cfg                  *config.Config
 	reactionMu           sync.Mutex
 	customReactionEmojis []string
+	botUserID            int64
+	botUsername          string
 }
 
 func NewHandler(bot *api.Bot, db *database.DB, cfg *config.Config) *Handler {
@@ -39,6 +41,12 @@ func NewHandler(bot *api.Bot, db *database.DB, cfg *config.Config) *Handler {
 		log.Printf("Error loading approved reaction emojis: %v", err)
 	} else {
 		handler.customReactionEmojis = ids
+	}
+	if identity, err := bot.GetMe(); err != nil {
+		log.Printf("Could not load bot identity for mention reactions: %v", err)
+	} else {
+		handler.botUserID = identity.ID
+		handler.botUsername = identity.Username
 	}
 	commands.Register("/allowreaction", handler.allowReactionHandler)
 	commands.Register("/removereaction", handler.removeReactionHandler)
@@ -90,7 +98,7 @@ func (h *Handler) HandleUpdate(update models.Update) {
 }
 
 func (h *Handler) maybeReactToAdminMessage(msg *models.Message) {
-	if !shouldReactToAdmin(msg, h.cfg) {
+	if !shouldReactToAdmin(msg, h.cfg, h.botUserID, h.botUsername) {
 		return
 	}
 	customEmojiID := h.customReactionEmoji(msg)
@@ -222,7 +230,7 @@ func (h *Handler) replyCommand(msg *models.Message, text string) {
 	}
 }
 
-func shouldReactToAdmin(msg *models.Message, cfg *config.Config) bool {
+func shouldReactToAdmin(msg *models.Message, cfg *config.Config, botUserID int64, botUsername string) bool {
 	if cfg == nil || msg == nil || msg.From == nil || msg.Chat == nil {
 		return false
 	}
@@ -234,7 +242,38 @@ func shouldReactToAdmin(msg *models.Message, cfg *config.Config) bool {
 	}
 
 	value := uint64(msg.MessageID) ^ uint64(msg.From.ID)
-	return value%8 == 0
+	if talkingToBot(msg, botUserID, botUsername) {
+		return value%2 == 0
+	}
+	return value%20 == 0
+}
+
+func talkingToBot(msg *models.Message, botUserID int64, botUsername string) bool {
+	if botUserID != 0 && msg.ReplyToMessage != nil && msg.ReplyToMessage.From != nil &&
+		msg.ReplyToMessage.From.ID == botUserID {
+		return true
+	}
+	if botUsername == "" {
+		return false
+	}
+
+	text := strings.ToLower(msg.Text)
+	mention := "@" + strings.ToLower(botUsername)
+	for start := 0; ; {
+		index := strings.Index(text[start:], mention)
+		if index < 0 {
+			return false
+		}
+		end := start + index + len(mention)
+		if end == len(text) || !isUsernameCharacter(text[end]) {
+			return true
+		}
+		start = end
+	}
+}
+
+func isUsernameCharacter(char byte) bool {
+	return char >= 'a' && char <= 'z' || char >= '0' && char <= '9' || char == '_'
 }
 
 func (h *Handler) trackActivity(msg *models.Message) {

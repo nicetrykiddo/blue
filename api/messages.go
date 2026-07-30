@@ -33,6 +33,32 @@ type BotCommand struct {
 	Description string `json:"description"`
 }
 
+func (b *Bot) GetMe() (*models.User, error) {
+	resp, err := b.client.Get(b.apiURL + "/getMe")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		OK          bool        `json:"ok"`
+		Result      models.User `json:"result"`
+		Description string      `json:"description,omitempty"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+	if !result.OK {
+		return nil, fmt.Errorf("telegram API request failed: %s", result.Description)
+	}
+	return &result.Result, nil
+}
+
 func (b *Bot) SendMessage(chatID int64, text string) (*models.Message, error) {
 	return b.SendMessageWithOptions(SendMessageOptions{
 		ChatID:    chatID,
